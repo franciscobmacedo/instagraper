@@ -87,7 +87,12 @@ def scraper_request_fixture(requests_mock):
 def test_scrape_with_json_output(mocker, scraper_request_fixture):
     mock_open = mocker.mock_open()
     mocker.patch("instagraper.utils.open", mock_open)
-    posts = scrape("example_user", json_output="output.json")
+    posts = scrape(
+        x_ig_app_id="test-app-id",
+        session_id="test-session-id",
+        username="example_user",
+        json_output="output.json",
+    )
     mock_open.assert_called_once_with("output.json", "w")
     assert len(posts) == 2
 
@@ -95,13 +100,24 @@ def test_scrape_with_json_output(mocker, scraper_request_fixture):
 def test_scrape_with_geojson_output(mocker, scraper_request_fixture):
     mock_open = mocker.mock_open()
     mocker.patch("instagraper.utils.open", mock_open)
-    posts = scrape("example_user", geojson_output="output.geojson", with_images=False)
+    posts = scrape(
+        x_ig_app_id="test-app-id",
+        session_id="test-session-id",
+        username="example_user",
+        geojson_output="output.geojson",
+        with_images=False,
+    )
     mock_open.assert_called_once_with("output.geojson", "w")
     assert len(posts) == 2
 
 
 def test_scrape_with_compact_option(scraper_request_fixture):
-    posts = scrape("example_user", compact=True)
+    posts = scrape(
+        x_ig_app_id="test-app-id",
+        session_id="test-session-id",
+        username="example_user",
+        compact=True,
+    )
     assert len(posts) == 2
     assert isinstance(posts[0], Post)
 
@@ -111,7 +127,9 @@ def test_scrape_with_map_output(mocker, scraper_request_fixture):
     mocker.patch("instagraper.map.open", mock_open)
     mocker.patch("instagraper.utils.open", mock_open)
     posts = scrape(
-        "example_user",
+        x_ig_app_id="test-app-id",
+        session_id="test-session-id",
+        username="example_user",
         map_output="map.html",
         geojson_output="output.geojson",
         with_images=False,
