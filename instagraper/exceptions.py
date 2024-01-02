@@ -1,0 +1,2 @@
+class InstagraperException(Exception):
+    pass
