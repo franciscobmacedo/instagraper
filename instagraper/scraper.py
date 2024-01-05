@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 
 import requests
@@ -21,47 +22,52 @@ def scrape(
     x_ig_app_id: Optional[str] = None,
     session_id: Optional[str] = None,
     compact: Optional[bool] = False,
-    json_output: Optional[str] = None,
-    geojson_output: Optional[str] = None,
-    map_output: Optional[str] = None,
+    json_output: Optional[bool] = None,
+    geojson_output: Optional[bool] = None,
+    map_output: Optional[bool] = None,
+    target: Optional[str] = None,
     with_images: Optional[bool] = False,
+    static_url: Optional[str] = None,
+    limit: Optional[int] = None,
 ) -> list[dict | Post]:
     """
     Scrapes Instagram posts for a given username and performs optional data processing and output generation.
 
     Args:
         username (str): The Instagram username to scrape posts from.
-        x_ig_app_id (str, optional): The Instagram app ID. Defaults to None.
-        session_id (str, optional): The Instagram session ID. Defaults to None.
+        x_ig_app_id (str, optional): Instagram app id (x-ig-app-id) header to authenticate the requests. If not provided, the tool will try to read it from the environment variable X_IG_APP_ID.
+        session_id (str, optional): Instagram session id (sessionid) cookie to authenticate the requests. If not provided, the tool will try to read it from the environment variable SESSION_ID.
         compact (bool, optional): Flag indicating whether to clean up the scraped posts. Defaults to False.
-        json_output (str, optional): The file path to save the scraped posts in JSON format. Defaults to None.
-        geojson_output (str, optional): The file path to save the scraped posts in GeoJSON format. Defaults to None.
-        map_output (str, optional): The file path to save the generated map. Defaults to None.
-        with_images (bool, optional): Flag indicating whether to download and save images. Defaults to False.
+        json_output (str, optional): The file name to save the scraped posts in JSON format. The file path will be {target}/{json_output}. Defaults to None.
+        geojson_output (str, optional): The file name to save the scraped posts in GeoJSON format. The file path will be {target}/{geojson_output}. Defaults to None.
+        map_output (str, optional): The html file name to save the generated map. The file path will be {target}/{map_output}.
+        target (str, optional): The target path/directory to save the output files. Defaults to a directory with the instagram username as it's name, e.g ./{username}/.
+        with_images (bool, optional): Flag indicating whether to download and save images. The images will be saved in the {target}/images directory. Defaults to False.
+        static_url (str, optional): The static url/path where the target directory will be hosted. Used to serve the images for the geojson output. e.g. if https://example.com/instagraper/ images will be in https://example.com/instagraper/{target}/images/. Defaults to None.
 
     Returns:
-        list[dict | Post]: The list of scraped posts, optionally cleaned up and processed.
+        list[dict | Post]: The list of scraped posts, optionally compated.
     """
-
+    target = target or username
+    os.makedirs(target, exist_ok=True)
     scraper = Scraper(x_ig_app_id, session_id)
-    posts = scraper.get_posts(username)
-    image_dir = f"{username}/images" if with_images else None
+    posts = scraper.get_posts(username, limit=limit)
     if geojson_output is None and map_output is not None:
         geojson_output = f"{username}.geojson"
 
-    if geojson_output is not None:
-        builder = GeojsonBuilder(posts, image_dir)
+    if geojson_output:
+        builder = GeojsonBuilder(posts, target, with_images, static_url)
         geojson_posts = builder.get_geojson()
-        dump_posts(username, geojson_posts, geojson_output)
+        dump_posts(username, geojson_posts, os.path.join(target, geojson_output))
 
     if compact:
         posts = list(clean_posts(posts))
 
-    if json_output is not None:
-        dump_posts(username, posts, json_output)
+    if json_output:
+        dump_posts(username, posts, os.path.join(target, json_output))
 
-    if map_output is not None:
-        create_map(map_output, geojson_output)
+    if map_output:
+        create_map(map_output, geojson_output, target)
 
     return posts
 
@@ -125,7 +131,7 @@ class Scraper:
 
         return items
 
-    def get_posts(self, username: str) -> list[dict]:
+    def get_posts(self, username: str, limit: int = None) -> list[dict]:
         user_id = self.get_user_id(username)
         url = API_URL.format(user_id=user_id)
         posts = []
@@ -154,4 +160,10 @@ class Scraper:
                     task,
                     description=f"got [bold yellow]{len(posts)}[/bold yellow] posts",
                 )
+                if limit and len(posts) >= limit:
+                    progress.update(
+                        task,
+                        description=f"got all posts: [bold green]{len(posts)}[/bold green]",
+                    )
+                    break
             return posts

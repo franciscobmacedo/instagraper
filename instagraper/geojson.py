@@ -10,14 +10,26 @@ from instagraper.models import Post
 
 
 class GeojsonBuilder:
+    images_dir = "images"
+
     def __init__(
-        self, posts: dict, image_dir: str = None, base_url: str = None
+        self,
+        posts: dict,
+        target: str,
+        with_images: bool,
+        static_url: str,
     ) -> None:
         self.posts = posts
-        self.image_dir = image_dir
-        if self.image_dir:
-            os.makedirs(image_dir, exist_ok=True)
-        self.base_url = base_url
+        self.target = target
+        self.with_images = with_images
+        self.static_url = static_url
+
+    @property
+    def images_path(self) -> Optional[str]:
+        if self.with_images:
+            _image_path = os.path.join(self.target, self.images_dir)
+            os.makedirs(_image_path, exist_ok=True)
+            return _image_path
 
     def get_geojson(self) -> dict:
         features = list(self.posts_to_point())
@@ -25,7 +37,11 @@ class GeojsonBuilder:
         return geojson
 
     def posts_to_point(self) -> dict:
-        for post in track(self.posts, "converting posts to geojson points..."):
+        if self.with_images:
+            message = "converting posts to geojson points and downloading images..."
+        else:
+            message = "converting posts to geojson points..."
+        for post in track(self.posts, message):
             point = self.post_to_point(post)
             if point:
                 yield point
@@ -55,21 +71,24 @@ class GeojsonBuilder:
         <a href={post.post_url} target="_blank"><h2>{post.location_name or 'see post'}</h2></a>
         <p>{post.caption}</p>
         """
-        image_path = self.get_image(post)
-        if image_path:
-            content += f"""
-                <img src="{image_path}" alt="{post.pk}" height="300" >
-                """
-        return content
+        if self.with_images:
+            image_file = self.get_image(post)
 
-    def get_image(self, post: Post) -> Optional[str]:
-        if self.image_dir is None:
-            return
-        image_path = os.path.join(self.image_dir, f"{post.pk}.webp")
+            if self.static_url:
+                image_path = os.path.join(self.static_url, self.images_path, image_file)
+            else:
+                image_path = os.path.join(self.images_dir, image_file)
+
+                content += f"""
+                    <img src="{image_path}" alt="{post.pk}" height="300" >
+                    """
+            return content
+
+    def get_image(self, post: Post) -> str:
+        image_file = f"{post.pk}.webp"
+        image_path = os.path.join(self.images_path, image_file)
         if not os.path.exists(image_path):
             r = requests.get(post.image_url)
             with open(image_path, "wb") as f:
                 f.write(r.content)
-        if self.base_url is not None:
-            image_path = os.path.join(self.base_url, image_path)
-        return image_path
+        return image_file

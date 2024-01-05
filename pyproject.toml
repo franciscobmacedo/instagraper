@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "instagraper"
-version = "0.1.0"
+version = "0.1.4"
 description = ""
 authors = ["Francisco Macedo <franciscovcbm@gmail.com>"]
 readme = "README.md"

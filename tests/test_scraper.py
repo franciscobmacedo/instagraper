@@ -5,7 +5,7 @@ from instagraper.scraper import API_URL, USERNAME_URL, scrape
 
 
 @pytest.fixture
-def scraper_request_fixture(requests_mock):
+def scraper_request_fixture(mocker, requests_mock):
     posts = [
         {
             "taken_at": 123456789,
@@ -83,6 +83,8 @@ def scraper_request_fixture(requests_mock):
         content=b"image",
     )
 
+    mocker.patch("instagraper.scraper.os.makedirs", mocker.mock_open())
+
 
 def test_scrape_with_json_output(mocker, scraper_request_fixture):
     mock_open = mocker.mock_open()
@@ -93,7 +95,7 @@ def test_scrape_with_json_output(mocker, scraper_request_fixture):
         username="example_user",
         json_output="output.json",
     )
-    mock_open.assert_called_once_with("output.json", "w")
+    mock_open.assert_called_once_with("example_user/output.json", "w")
     assert len(posts) == 2
 
 
@@ -107,7 +109,7 @@ def test_scrape_with_geojson_output(mocker, scraper_request_fixture):
         geojson_output="output.geojson",
         with_images=False,
     )
-    mock_open.assert_called_once_with("output.geojson", "w")
+    mock_open.assert_called_once_with("example_user/output.geojson", "w")
     assert len(posts) == 2
 
 
@@ -131,8 +133,47 @@ def test_scrape_with_map_output(mocker, scraper_request_fixture):
         session_id="test-session-id",
         username="example_user",
         map_output="map.html",
-        geojson_output="output.geojson",
         with_images=False,
     )
-    mock_open.assert_called_with("map.html", "w")
+    mock_open.assert_any_call("example_user/map.html", "w")
+    mock_open.assert_any_call("example_user/example_user.geojson", "w")
+    assert len(posts) == 2
+
+
+def test_scrape_with_images(mocker, scraper_request_fixture):
+    mock_open = mocker.mock_open()
+    mocker.patch("instagraper.utils.open", mock_open)
+    mocker.patch("instagraper.geojson.open", mock_open)
+
+    posts = scrape(
+        x_ig_app_id="test-app-id",
+        session_id="test-session-id",
+        username="example_user",
+        geojson_output="output.geojson",
+        with_images=True,
+    )
+    mock_open.assert_called_with("example_user/output.geojson", "w")
+    mock_open.assert_any_call("example_user/images/aaa.webp", "wb")
+    mock_open.assert_any_call("example_user/images/bbb.webp", "wb")
+    assert len(posts) == 2
+
+
+def test_scrape_with_custom_target_directory(mocker, scraper_request_fixture):
+    mock_open = mocker.mock_open()
+    mocker.patch("instagraper.utils.open", mock_open)
+    mocker.patch("instagraper.map.open", mock_open)
+    mocker.patch("instagraper.geojson.open", mock_open)
+
+    posts = scrape(
+        x_ig_app_id="test-app-id",
+        session_id="test-session-id",
+        username="example_user",
+        target="example/target/directory",
+        map_output="output.html",
+        with_images=True,
+    )
+    mock_open.assert_any_call("example/target/directory/example_user.geojson", "w")
+    mock_open.assert_any_call("example/target/directory/output.html", "w")
+    mock_open.assert_any_call("example/target/directory/images/aaa.webp", "wb")
+    mock_open.assert_any_call("example/target/directory/images/bbb.webp", "wb")
     assert len(posts) == 2

@@ -148,20 +148,27 @@ $ instagraper USERNAME [OPTIONS]
 
 #### Arguments:
 
-- `USERNAME`: [required] The instagram username
+```console
+ *    username      TEXT  The Instagram username to scrape posts from. [default: None] [required]    
+```
 
 #### Options:
+```console
 
-- `--x-ig-app-id TEXT` Instagram app id (x-ig-app-id) header to authenticate the requests. If not provided, the tool will try to read it from the environment variable `X_IG_APP_ID`
-- `--session-id TEXT` Instagram session id (sessionid) cookie to authenticate the requests. If not provided, the tool will try to read it from the environment variable `SESSION_ID`
-- `--compact` or `-c`: wether to compact the JSON output or not [default: True]
-- `--json` or `-j`: whether to dump the posts to a JSON file or not [default: False]
-- `--geojson` or `-g`: whether to dump the posts to a GeoJSON file or not. If map is enabled, this will be enabled by default.
-- `--map` or `-m`: whether to create a map with the posts or not. It will enable GeoJSON output by default.
-- `--images` or `-i`: whether to download post's images or not.
-- `--install-completion`: Install completion for the current shell.
-- `--show-completion`: Show completion for the current shell, to copy it or customize the installation.
-- `--help`: Show this message and exit.
+--x-ig-app-id                 TEXT     Instagram app id (x-ig-app-id) header to authenticate the requests. If not provided, the tool will try to read it from the environment variable X_IG_APP_ID [default: None] 
+--session-id                  TEXT     Instagram session id (sessionid) cookie to authenticate the requests. If not provided, the tool will try to read it from the environment variable SESSION_ID [default: None] 
+--compact             -c               Wether to cleanup the scraped posts [default: True]                                  
+--json                -j      TEXT     The file name to save the scraped posts in JSON format. The file path will be {target}/{json_output}. [default: None]        
+--geojson             -g      TEXT     The file name to save the scraped posts in GeoJSON format. If map is enabled, it will be used as the input file for the map and will default to {username}.geojson. The file path will be {target}/{geojson_output}. [default: None]
+--map                 -m      TEXT     The html file name to save the generated map. The file path will be {target}/{map_output}. [default: None]                                                   
+--target              -t      TEXT     the target path/directory to save the output files. Defaults to a directory with the instagram username as it's name, e.g ./{username}/ [default: None]    
+--images              -i               whether to download post's images or not. The images will be saved in the {target}/images directory.   
+--static-url          -s      TEXT     The static url/path where the target directory will be hosted. Used to serve the images for the geojson output. e.g. if https://example.com/instagraper/ images will be in https://example.com/instagraper/{target}/images/      [default: None]
+--limit               -l      INTEGER  The maximum number of posts to scrape. If not provided, all posts will be scraped. [default: None]     
+--install-completion                   Install completion for the current shell.   
+--show-completion                      Show completion for the current shell, to copy it or customize the installation.                                         
+--help                                 Show this message and exit.                 
+```
 
 ### Examples
 
