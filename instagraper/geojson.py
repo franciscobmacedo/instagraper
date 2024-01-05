@@ -79,9 +79,9 @@ class GeojsonBuilder:
             else:
                 image_path = os.path.join(self.images_dir, image_file)
 
-                content += f"""
-                    <img src="{image_path}" alt="{post.pk}" height="300" >
-                    """
+            content += f"""
+                <img src="{image_path}" alt="{post.pk}" height="300" >
+                """
             return content
 
     def get_image(self, post: Post) -> str:
