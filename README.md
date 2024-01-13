@@ -203,3 +203,9 @@ This will also create the above mentioned geojson file.
 ```bash
 instagraper anthonybourdain -g -i
 ```
+
+
+# TODO
+- [ ] When the post location is only a city name (like "London"), the pins overalp each other and only the one top is clickable.
+- [ ] Aggregate pins like Gmaps, "10", "20", etc...
+  

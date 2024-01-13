@@ -1,28 +1,24 @@
-import os
-from pathlib import Path
-
 from rich import print
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-INSTAGRAPER_DIR = Path(__file__).parent
+from instagraper.template import Template
 
 
-def create_map(map_output: str, geojson_output: str, target: str):
-    print(f"\nCreating map at [bold green]{map_output}[/bold green]")
+def create_map(geojson_output: str, output: str, username: str):
+    print(f"\nCreating map at [bold green]{output}[/bold green]")
     with Progress(
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
     ) as progress:
         task = progress.add_task(description="writing ...", total=None)
-        template_path = os.path.join(INSTAGRAPER_DIR, "templates", "map.html")
-        with open(template_path) as f:
-            map_template = f.read()
-
-        map_template = map_template.replace("{{data_file}}", geojson_output)
-        with open(os.path.join(target, map_output), "w") as f:
-            f.write(map_template)
-
+        context = {
+            "data_file": geojson_output,
+            "title": f"{username} Map",
+        }
+        template = Template(output=output)
+        content = template.render(context=context)
+        template.dump(content)
         progress.update(
             task,
-            description=f"wrote map [bold green]{map_output}[/bold green]",
+            description=f"wrote map [bold green]{output}[/bold green]",
         )

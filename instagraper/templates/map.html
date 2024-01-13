@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>GeoJSON Map</title>
+    <title>{{title}}</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link
@@ -42,6 +42,16 @@
         padding: 5px;
         border-radius: 5px;
         cursor: pointer;
+      }
+      @media screen and (max-width: 1024px) {
+        #info {
+          left: 0;
+          right: 0;
+          bottom: 0;
+          top: 70%;
+          max-height: 30%;
+          max-width: 100%;
+        }
       }
       td {
         border-bottom: 1px solid #eee;

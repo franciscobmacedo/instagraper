@@ -67,7 +67,11 @@ def scrape(
         dump_posts(username, posts, os.path.join(target, json_output))
 
     if map_output:
-        create_map(map_output, geojson_output, target)
+        create_map(geojson_output, os.path.join(target, map_output), username)
+
+        print(
+            f"Done! Check the [bold green]{target}[/bold green] directory where the files where dumped."
+        )
 
     return posts
 
@@ -82,6 +86,8 @@ class Scraper:
         session_id = session_id or config("SESSION_ID")
         self.headers = {"x-ig-app-id": x_ig_app_id}
         self.cookies = {"sessionid": session_id}
+        print(f"using x-ig-app-id: {x_ig_app_id}")
+        print(f"using sessionid: {session_id}")
 
     def make_request(self, url: str, params: dict = {}) -> dict:
         response = requests.get(

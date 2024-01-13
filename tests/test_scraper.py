@@ -126,7 +126,7 @@ def test_scrape_with_compact_option(scraper_request_fixture):
 
 def test_scrape_with_map_output(mocker, scraper_request_fixture):
     mock_open = mocker.mock_open()
-    mocker.patch("instagraper.map.open", mock_open)
+    mocker.patch("instagraper.template.open", mock_open)
     mocker.patch("instagraper.utils.open", mock_open)
     posts = scrape(
         x_ig_app_id="test-app-id",
@@ -161,7 +161,7 @@ def test_scrape_with_images(mocker, scraper_request_fixture):
 def test_scrape_with_custom_target_directory(mocker, scraper_request_fixture):
     mock_open = mocker.mock_open()
     mocker.patch("instagraper.utils.open", mock_open)
-    mocker.patch("instagraper.map.open", mock_open)
+    mocker.patch("instagraper.template.open", mock_open)
     mocker.patch("instagraper.geojson.open", mock_open)
 
     posts = scrape(
